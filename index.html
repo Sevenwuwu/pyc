@@ -58,14 +58,14 @@
             position: absolute;
             top: 0;
             left: 0;
-            pointer-events: none; /* 預設不允許點擊，避免層疊干擾 */
+            pointer-events: none;
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
             transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
             -webkit-transition: -webkit-transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
             transform-origin: left center;
             -webkit-transform-origin: left center;
-            visibility: hidden; /* 預設完全不顯示，徹底解決穿透問題 */
+            visibility: hidden;
             z-index: 1;
         }
 
@@ -111,7 +111,7 @@
             transform: rotateY(-180deg);
             -webkit-transform: rotateY(-180deg);
             z-index: 0;
-            visibility: visible; /* 翻過去的頁面保持可見（背面會露出來） */
+            visibility: visible;
         }
 
         /* 只有處於活動狀態（最頂層）的頁面 */
@@ -367,6 +367,7 @@
 
     <div class="book-container">
         
+        <!-- ==================== 第一頁：封面 ==================== -->
         <div class="page active" id="page1">
             <div class="page-face">
                 <div class="inner-border">
@@ -391,6 +392,7 @@
             </div>
         </div>
 
+        <!-- ==================== 第二頁：詩篇正文 ==================== -->
         <div class="page" id="page2">
             <div class="page-face">
                 <div class="inner-border">
@@ -422,12 +424,14 @@
             </div>
         </div>
 
+        <!-- ==================== 第三頁：終極四扇門抉擇 ==================== -->
         <div class="page" id="page3">
             <div class="page-face">
                 <div class="inner-border">
                     <div class="crest">✦ ⚜ ✦</div>
                     <div class="doors-title" id="doorsTitle">請卸下心防，選擇一扇宿命之門</div>
                     
+                    <!-- 四扇門：日、月、親、卿 -->
                     <div class="doors-grid" id="doorsGrid">
                         <div class="door-wrapper">
                             <div class="door" onclick="chooseDoor(1, this)" ontouchstart="chooseDoor(1, this)">
@@ -460,6 +464,7 @@
 
     </div>
 
+    <!-- ==================== 鎖定解鎖彈窗 ==================== -->
     <div class="result-box" id="lockBox">
         <h3 style="color: #ff4d4d;">🔓 命運鎖定：安全提問</h3>
         <p style="margin-top: 10px; font-size: 14px;">這扇門對你緊閉。若想重新獲得抉擇之權，請回答主人的專屬私密問題：</p>
@@ -469,14 +474,17 @@
         <p id="errorHint" style="color: #ff4d4d; font-size: 12px; margin-top: 10px; display: none;">誓言不對喔，再仔細想想！</p>
     </div>
 
+    <!-- ==================== 唯一正確的抉擇彈窗結果 (已更新文案) ==================== -->
     <div class="result-box" id="resultBox">
         <h3>【 卿房大結局：吾愛唯卿 】</h3>
         <p id="resultText">
             吾愛有三，日、月、卿。而卿，是朝朝暮暮。<br><br>
-            你果真沒有遲疑，走向了專屬於我們的宿命終點！現在，請合上石板，別再字句間兜轉，抬頭望向 Mandy 的眼睛——最深沉的愛與最滾燙的生日大禮，早已在等著你。
+            你果真沒有遲疑，答出專屬於我們的暗號！<br><br>
+            現在，請合上石板，別再字句間兜轉，抬頭望向我的眼睛——最深沉的愛與最滾燙的生日大禮，早已在等著你。
         </p>
     </div>
 
+    <!-- JavaScript 動態邏輯 -->
     <script>
         // 翻開下一頁
         function nextPage(pageNum) {
@@ -490,7 +498,7 @@
             if (nextPage) {
                 setTimeout(() => {
                     nextPage.classList.add('active');
-                }, 300); // 確保 3D 轉動過半後才啟用下一頁的觸控
+                }, 300);
             }
         }
 
@@ -503,7 +511,7 @@
                 currentPage.classList.remove('active');
             }
             if (prevPage) {
-                prevPage.classList.remove('flipped'); // 移除翻轉類，翻轉回來
+                prevPage.classList.remove('flipped');
                 setTimeout(() => {
                     prevPage.classList.add('active');
                 }, 100);
@@ -575,7 +583,7 @@
             }
         }
 
-        // 初始化：預設載入時，第一頁為 active，其餘完全隱藏
+        // 初始化
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('page1').classList.add('active');
         });
