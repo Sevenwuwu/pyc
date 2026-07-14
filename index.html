@@ -10,19 +10,20 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: #0d0d0d;
+            background-color: #080808;
             color: #f2e3c6;
             font-family: 'PingFang TC', 'Noto Serif TC', 'Microsoft JhengHei', serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow: hidden;
             position: relative;
-            padding: 20px;
+            perspective: 1500px; /* 3D 翻書透視度 */
         }
 
         /* 奢華流沙金色背景動畫 */
@@ -40,164 +41,503 @@
             z-index: -2;
         }
 
-        /* 飄散金色微光特效 */
-        .sparkles {
-            position: fixed;
-            top: 0;
-            left: 0;
+        /* 3D 書本主容器 */
+        .book-container {
+            width: 90vw;
+            height: 80vh;
+            max-width: 380px;
+            max-height: 640px;
+            position: relative;
+            transition: transform 0.5s;
+        }
+
+        /* 單個書頁樣式 */
+        .page {
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            background-image: radial-gradient(circle, rgba(212, 175, 55, 0.15) 1px, transparent 1px);
-            background-size: 40px 40px;
-            animation: floatSparkles 15s linear infinite;
-            z-index: -1;
-            opacity: 0.6;
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none; /* 預設不干擾點擊 */
+            transform-style: preserve-3d;
+            transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+            transform-origin: left center;
         }
 
-        @keyframes floatSparkles {
-            0% { background-position: 0px 0px; }
-            100% { background-position: 40px 80px; }
-        }
-
-        /* 信件外框容器 */
-        .letter-container {
+        /* 書頁的正反面 */
+        .page-face {
+            position: absolute;
             width: 100%;
-            max-width: 390px; /* 完美契合主流手機寬度 */
-            background: linear-gradient(180deg, rgba(20, 20, 20, 0.9) 0%, rgba(10, 10, 10, 0.95) 100%);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 16px;
-            padding: 35px 25px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(212, 175, 55, 0.05);
-            position: relative;
-            animation: fadeIn 1.8s ease-out;
-        }
-
-        /* 內層裝飾細金線 */
-        .letter-inner {
-            border: 1px dashed rgba(212, 175, 55, 0.15);
+            height: 100%;
+            backface-visibility: hidden; /* 翻轉時隱藏背面 */
+            background: linear-gradient(180deg, rgba(22, 22, 22, 0.98) 0%, rgba(12, 12, 12, 0.99) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.25);
             border-radius: 12px;
-            padding: 25px 15px;
-            text-align: center;
+            padding: 25px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(212, 175, 55, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* 頂部徽章裝飾 */
-        .royal-crest {
-            font-size: 24px;
-            color: #d4af37;
-            margin-bottom: 25px;
-            letter-spacing: 2px;
-            animation: pulse 3s infinite ease-in-out;
-            filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3));
+        .page-back {
+            transform: rotateY(180deg);
         }
 
-        /* 標題樣式 */
-        h1 {
-            font-size: 20px;
-            color: #e5c158;
-            letter-spacing: 4px;
-            margin-bottom: 30px;
-            font-weight: 500;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-            padding-bottom: 15px;
-            display: inline-block;
-        }
-
-        /* 朦朧詩正文排版 */
-        .poem {
-            font-size: 15px;
-            line-height: 2.2;
-            letter-spacing: 2.5px;
-            color: #f2e3c6;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
-        }
-
-        .poem p {
-            margin-bottom: 20px;
+        /* 書頁裝飾邊框 */
+        .inner-border {
+            border: 1px dashed rgba(212, 175, 55, 0.15);
+            border-radius: 8px;
+            width: 100%;
+            height: 100%;
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
             position: relative;
         }
 
-        /* 關鍵解密提示強調 */
-        .highlight {
-            color: #fcebb6;
-            font-weight: 600;
-            border-top: 1px solid rgba(212, 175, 55, 0.15);
-            padding-top: 25px;
-            margin-top: 25px;
+        /* 翻頁後的狀態 */
+        .page.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        .page.active {
+            pointer-events: auto; /* 只有當前頁面允許點擊觸控 */
+        }
+
+        /* 書頂與書底徽章 */
+        .crest {
+            font-size: 18px;
+            color: #d4af37;
+            letter-spacing: 2px;
+            filter: drop-shadow(0 0 3px rgba(212, 175, 55, 0.2));
+        }
+
+        /* --- 第一頁：封面樣式 --- */
+        .cover-title {
+            text-align: center;
+            margin-top: 30%;
+        }
+
+        .cover-title h1 {
+            font-size: 24px;
+            color: #e5c158;
+            letter-spacing: 6px;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(212,175,55,0.3);
+        }
+
+        .cover-title p {
+            font-size: 13px;
+            color: rgba(242, 227, 198, 0.6);
             letter-spacing: 3px;
-            line-height: 2.4;
-            text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
         }
 
-        /* 動畫效果 */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* --- 第二頁：手札詩篇樣式 --- */
+        .poem-content {
+            text-align: center;
+            font-size: 13px;
+            line-height: 2.1;
+            letter-spacing: 2px;
+            margin: auto 0;
+            width: 100%;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
+        .poem-content p {
+            margin-bottom: 12px;
         }
 
-        /* 手機觸覺反饋引導微調 */
-        @media (max-width: 360px) {
-            .letter-container {
-                padding: 25px 15px;
-            }
-            .poem {
-                font-size: 14px;
-                line-height: 2.0;
-            }
+        .highlight-line {
+            color: #e5c158;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* --- 第三頁：四扇門選擇大結局樣式 --- */
+        .doors-title {
+            font-size: 15px;
+            color: #e5c158;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            text-align: center;
+            transition: color 0.3s;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 四扇門的網格佈局 */
+        .doors-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 280px;
+            margin: auto 0;
+            transition: all 0.5s;
+        }
+
+        /* 單個門的 3D 設計 */
+        .door-wrapper {
+            perspective: 600px;
+            height: 120px;
+        }
+
+        .door {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #221c12 0%, #15110a 100%);
+            border: 2px solid #d4af37;
+            border-radius: 6px 6px 0 0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transform-origin: left center;
+        }
+
+        /* 門環/把手裝飾 */
+        .door::after {
+            content: '•';
+            color: #d4af37;
+            font-size: 20px;
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-shadow: 0 0 5px rgba(212, 175, 55, 0.8);
+        }
+
+        .door span {
+            font-size: 14px;
+            font-weight: bold;
+            color: #f2e3c6;
+            letter-spacing: 2px;
+        }
+
+        /* 門被點擊開啟的動畫 */
+        .door.open {
+            transform: rotateY(-85deg);
+            background: #000;
+            box-shadow: 10px 0 20px rgba(0,0,0,0.9);
+            border-color: #ffd700;
+        }
+
+        /* 點選錯誤的門：劇烈顫抖 + 紅光動畫 */
+        .door.shake {
+            animation: shakeDoor 0.5s ease-in-out;
+            border-color: #ff4d4d;
+            box-shadow: 0 0 10px rgba(255, 77, 77, 0.6);
+        }
+
+        @keyframes shakeDoor {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        /* 當正確的門被選中後，其餘未選中的門變暗且無法點選 */
+        .doors-grid.locked .door:not(.open) {
+            opacity: 0.15;
+            filter: grayscale(1);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* 彈窗基本樣式 */
+        .result-box {
+            position: absolute;
+            width: 85%;
+            background: rgba(10, 10, 10, 0.98);
+            border: 1px solid #ffd700;
+            border-radius: 10px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 0 35px rgba(212, 175, 55, 0.4);
+            z-index: 10;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.7);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .result-box.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+
+        .result-box h3 {
+            color: #ffd700;
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .result-box p {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #f2e3c6;
+            letter-spacing: 1px;
+        }
+
+        /* 解鎖密碼彈窗樣式 */
+        .lock-input {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: #f2e3c6;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+            margin: 15px 0;
+            outline: none;
+            letter-spacing: 1px;
+        }
+
+        .lock-input::placeholder {
+            color: rgba(242, 227, 198, 0.3);
+        }
+
+        .btn-confirm {
+            background: #d4af37;
+            color: #0d0d0d;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-confirm:active {
+            transform: scale(0.95);
+        }
+
+        /* 下一步/翻頁按鈕 */
+        .btn-next {
+            background: transparent;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            color: #e5c158;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 12px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            outline: none;
+            margin-bottom: 15px;
+        }
+
+        .btn-next:active {
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
 
-    <!-- 背景微光 -->
-    <div class="sparkles"></div>
-
-    <!-- 信件容器 -->
-    <div class="letter-container">
-        <div class="letter-inner">
-            
-            <!-- 皇家復古圖騰 -->
-            <div class="royal-crest">✦ ⚜ ✦</div>
-            
-            <!-- 標題 -->
-            <h1>《宴會主人的手札》</h1>
-            
-            <!-- 詩句正文 -->
-            <div class="poem">
-                <p>我將寶物，收藏於門後</p>
-                <p>欲尋寶物，需聽懂我的囈語：</p>
-                <p style="color: #e5c158; font-weight: bold; font-size: 16px;">吾愛有三，日、月、卿。</p>
-                <p>日為朝，月為暮，卿為朝朝暮暮。</p>
-                
-                <p style="margin-top: 25px;">晨曦太過倉促，<br>盛不下對你滿溢的愛慕；</p>
-                <p>夜幕太過清冷，<br>容不下對你滾燙的貪圖。</p>
-                
-                <p style="margin-top: 25px;">我此生的慷慨，從不給予無緣的過客，</p>
-                <p>卻也吝嗇給予僅止於血緣與身分的熟稔。</p>
-                
-                <!-- 結尾反轉提示 -->
-                <div class="highlight">
-                    如果你了解我，請卸下心防。<br>
-                    若你執意拿走禮物，別在字句間兜轉，<br>
-                    <span style="color: #ffd700; text-decoration: underline; text-underline-offset: 6px;">望進我的眼睛裡，你就會看到答案。</span>
+    <div class="book-container">
+        
+        <div class="page active" id="page1">
+            <div class="page-face">
+                <div class="inner-border">
+                    <div class="crest">✦ ⚜ ✦</div>
+                    <div class="cover-title">
+                        <h1>《宴會主人的手札》</h1>
+                        <p>DIES NATALIS FLORIS</p>
+                    </div>
+                    <button class="btn-next" onclick="nextPage(1)">輕觸翻開手札 ➔</button>
                 </div>
             </div>
-            
-            <div class="royal-crest" style="margin-top: 20px; font-size: 14px;">— 𝓒𝓱𝓵𝓸𝓮'𝓼 𝓓𝓲𝓮𝓼 𝓝𝓪𝓽𝓪𝓵𝓲𝓼 —</div>
+            <div class="page-face page-back">
+                <div class="inner-border">
+                    <div class="crest">✦</div>
+                    <div style="font-size: 12px; color: rgba(212, 175, 55, 0.4); letter-spacing: 2px;">
+                        深藏於光影交織處的呢喃...
+                    </div>
+                    <div class="crest">✦</div>
+                </div>
+            </div>
         </div>
+
+        <div class="page" id="page2">
+            <div class="page-face">
+                <div class="inner-border">
+                    <div class="crest">✦ ⚜ ✦</div>
+                    <div class="poem-content">
+                        <p>我將寶物，收藏於門後</p>
+                        <p>欲尋寶物，需聽懂我的囈語：</p>
+                        <p class="highlight-line">吾愛有三，日、月、卿。</p>
+                        <p>日為朝，月為暮，卿為朝朝暮暮。</p>
+                        <p style="margin-top: 15px;">晨曦太過倉促，盛不下對你滿溢的愛慕；</p>
+                        <p>夜幕太過清冷，容不下對你滾燙的貪圖。</p>
+                        <p style="margin-top: 15px;">我此生的慷慨，從不給予無緣的過客，</p>
+                        <p>卻也吝嗇給予僅止於血緣與身分的熟稔。</p>
+                    </div>
+                    <button class="btn-next" onclick="nextPage(2)">望向深處 ➔</button>
+                </div>
+            </div>
+            <div class="page-face page-back">
+                <div class="inner-border">
+                    <div class="crest">✦</div>
+                    <div style="font-size: 12px; color: rgba(212, 175, 55, 0.4); letter-spacing: 2px; text-align: center; line-height: 2;">
+                        別在字句間兜轉，<br>望進我的眼睛裡，你就會看到答案。
+                    </div>
+                    <div class="crest">✦</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page3">
+            <div class="page-face">
+                <div class="inner-border">
+                    <div class="crest">✦ ⚜ ✦</div>
+                    <div class="doors-title" id="doorsTitle">請卸下心防，選擇一扇宿命之門</div>
+                    
+                    <div class="doors-grid" id="doorsGrid">
+                        <div class="door-wrapper">
+                            <div class="door" onclick="chooseDoor(1, this)">
+                                <span>「日」之門</span>
+                            </div>
+                        </div>
+                        <div class="door-wrapper">
+                            <div class="door" onclick="chooseDoor(2, this)">
+                                <span>「月」之門</span>
+                            </div>
+                        </div>
+                        <div class="door-wrapper">
+                            <div class="door" onclick="chooseDoor(3, this)">
+                                <span>「親」之門</span>
+                            </div>
+                        </div>
+                        <div class="door-wrapper">
+                            <div class="door" onclick="chooseDoor(4, this)">
+                                <span>「卿」之門</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crest" style="font-size: 11px;">※ 一經決斷，即是宿命的交點</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
+    <div class="result-box" id="lockBox">
+        <h3 style="color: #ff4d4d;">🔓 命運鎖定：安全提問</h3>
+        <p style="margin-top: 10px; font-size: 14px;">這扇門對你緊閉。若想重新獲得抉擇之權，請回答主人的專屬私密問題：</p>
+        <p style="color: #ffd700; margin-top: 15px; font-weight: bold; font-size: 15px;">「我捧著妳臉的時候會說什麼？」 (11個字)</p>
+        <input type="text" class="lock-input" id="answerInput" placeholder="請在此輸入正確誓言...">
+        <button class="btn-confirm" onclick="verifyAnswer()">提交誓言</button>
+        <p id="errorHint" style="color: #ff4d4d; font-size: 12px; margin-top: 10px; display: none;">誓言不對喔，再仔細想想！</p>
+    </div>
+
+    <div class="result-box" id="resultBox">
+        <h3>【 卿房大結局：吾愛唯卿 】</h3>
+        <p id="resultText">
+            吾愛有三，日、月、卿。而卿，是朝朝暮暮。<br><br>
+            你果真沒有遲疑，走向了專屬於我們的宿命終點！現在，請合上石板，別再字句間兜轉，抬頭望向 Mandy 的眼睛——最深沉的愛與最滾燙的生日大禮，早已在等著你。
+        </p>
+    </div>
+
+    <script>
+        function nextPage(pageNum) {
+            const currentPage = document.getElementById(`page${pageNum}`);
+            const nextPage = document.getElementById(`page${pageNum + 1}`);
+            
+            if (currentPage) {
+                currentPage.classList.add('flipped');
+                currentPage.classList.remove('active');
+            }
+            if (nextPage) {
+                nextPage.classList.add('active');
+            }
+        }
+
+        let hasChosenCorrectly = false;
+        let isLocked = false;
+
+        function chooseDoor(doorNumber, doorElement) {
+            if (hasChosenCorrectly || isLocked) return; 
+
+            const title = document.getElementById('doorsTitle');
+
+            // === 情況 A：選錯門 (日、月、親) ➔ 鎖死大門，必須回答問題解鎖 ===
+            if (doorNumber !== 4) {
+                // 1. 門抖動並發出紅光
+                doorElement.classList.add('shake');
+                setTimeout(() => {
+                    doorElement.classList.remove('shake');
+                }, 500);
+
+                // 2. 鎖定點擊狀態
+                isLocked = true;
+                
+                // 3. 1秒後跳出解鎖彈窗
+                setTimeout(() => {
+                    document.getElementById('lockBox').classList.add('show');
+                }, 800);
+                
+                return;
+            }
+
+            // === 情況 B：選對門 (卿之門) ===
+            hasChosenCorrectly = true;
+
+            // 1. 鎖定整個大門區域，其他門變灰
+            const grid = document.getElementById('doorsGrid');
+            grid.classList.add('locked');
+
+            // 2. 變更標題文字
+            title.innerHTML = "<span style='color: #ffd700; font-size: 16px; font-weight: bold;'>✦ 門開了。吾愛唯卿 ✦</span>";
+
+            // 3. 讓卿之門 3D 旋轉開啟
+            doorElement.classList.add('open');
+
+            // 4. 1.2 秒後彈出最深情、完美的終極大結局視窗
+            const resultBox = document.getElementById('resultBox');
+            setTimeout(() => {
+                resultBox.classList.add('show');
+            }, 1200);
+        }
+
+        // === 密碼驗證邏輯 ===
+        function verifyAnswer() {
+            const inputVal = document.getElementById('answerInput').value.trim();
+            const correctAnswers = ["誰是世界上最可愛的女友", "誰是世界上最可愛的女友？"]; // 自動相容帶問號跟不帶問號的輸入
+            
+            if (correctAnswers.includes(inputVal)) {
+                // 答對了：關閉解鎖盒、解除鎖定，清除輸入框，並將標題重置
+                document.getElementById('lockBox').classList.remove('show');
+                document.getElementById('errorHint').style.display = "none";
+                document.getElementById('answerInput').value = "";
+                isLocked = false;
+                
+                const title = document.getElementById('doorsTitle');
+                title.innerHTML = "<span style='color: #ffd700; font-size: 14px;'>🔓 鎖定解除，請再次傾聽你靈魂的抉擇。</span>";
+                setTimeout(() => {
+                    if (!hasChosenCorrectly) {
+                        title.innerHTML = "請卸下心防，選擇一扇宿命之門";
+                    }
+                }, 2500);
+            } else {
+                // 答錯了：顯示紅色提示
+                document.getElementById('errorHint').style.display = "block";
+            }
+        }
+    </script>
 </body>
 </html>
