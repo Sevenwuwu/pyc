@@ -23,7 +23,7 @@
             min-height: 100vh;
             overflow: hidden;
             position: relative;
-            perspective: 1500px; /* 3D 翻書透視度 */
+            perspective: 1500px;
             -webkit-perspective: 1500px;
         }
 
@@ -49,7 +49,6 @@
             max-width: 380px;
             max-height: 640px;
             position: relative;
-            transition: transform 0.5s;
         }
 
         /* 單個書頁樣式 */
@@ -59,13 +58,14 @@
             position: absolute;
             top: 0;
             left: 0;
-            pointer-events: none; /* 預設不干擾點擊 */
+            pointer-events: none; /* 預設不允許點擊，避免層疊干擾 */
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
             transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
             -webkit-transition: -webkit-transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
             transform-origin: left center;
             -webkit-transform-origin: left center;
+            visibility: hidden; /* 預設完全不顯示，徹底解決穿透問題 */
             z-index: 1;
         }
 
@@ -74,7 +74,7 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            backface-visibility: hidden; /* 翻轉時隱藏背面 */
+            backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
             background: linear-gradient(180deg, rgba(22, 22, 22, 0.98) 0%, rgba(12, 12, 12, 0.99) 100%);
             border: 1px solid rgba(212, 175, 55, 0.25);
@@ -110,13 +110,15 @@
         .page.flipped {
             transform: rotateY(-180deg);
             -webkit-transform: rotateY(-180deg);
-            z-index: 0; /* 翻過去的頁面權限調低 */
+            z-index: 0;
+            visibility: visible; /* 翻過去的頁面保持可見（背面會露出來） */
         }
 
-        /* 只有當前可操控的頁面，才允許點擊 */
+        /* 只有處於活動狀態（最頂層）的頁面 */
         .page.active {
             pointer-events: auto !important;
-            z-index: 2;
+            visibility: visible !important;
+            z-index: 5;
         }
 
         /* 書頂與書底徽章 */
@@ -291,20 +293,6 @@
             pointer-events: auto !important;
         }
 
-        .result-box h3 {
-            color: #ffd700;
-            font-size: 16px;
-            letter-spacing: 2px;
-            margin-bottom: 12px;
-        }
-
-        .result-box p {
-            font-size: 13px;
-            line-height: 1.8;
-            color: #f2e3c6;
-            letter-spacing: 1px;
-        }
-
         /* 解鎖密碼彈窗樣式 */
         .lock-input {
             width: 100%;
@@ -340,23 +328,36 @@
             transform: scale(0.95);
         }
 
-        /* 下一步/翻頁按鈕 */
-        .btn-next {
+        /* 導航按鈕容器 */
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        /* 下一步/翻頁/返回按鈕 */
+        .btn-next, .btn-prev {
             background: transparent;
             border: 1px solid rgba(212, 175, 55, 0.5);
             color: #e5c158;
-            padding: 8px 24px;
+            padding: 8px 20px;
             border-radius: 20px;
             font-size: 12px;
             letter-spacing: 2px;
             cursor: pointer;
             transition: all 0.3s;
             outline: none;
-            margin-bottom: 15px;
-            pointer-events: auto; /* 確保按鈕本身絕對可點擊 */
+            pointer-events: auto;
         }
 
-        .btn-next:active {
+        .btn-prev {
+            border-color: rgba(242, 227, 198, 0.3);
+            color: rgba(242, 227, 198, 0.6);
+        }
+
+        .btn-next:active, .btn-prev:active {
             background: rgba(212, 175, 55, 0.1);
             transform: scale(0.95);
         }
@@ -366,7 +367,6 @@
 
     <div class="book-container">
         
-        <!-- ==================== 第一頁：封面 ==================== -->
         <div class="page active" id="page1">
             <div class="page-face">
                 <div class="inner-border">
@@ -375,7 +375,9 @@
                         <h1>《宴會主人的手札》</h1>
                         <p>DIES NATALIS FLORIS</p>
                     </div>
-                    <button class="btn-next" onclick="nextPage(1)" ontouchstart="nextPage(1)">輕觸翻開手札 ➔</button>
+                    <div class="nav-buttons">
+                        <button class="btn-next" onclick="nextPage(1)" ontouchstart="nextPage(1)">輕觸翻開手札 ➔</button>
+                    </div>
                 </div>
             </div>
             <div class="page-face page-back">
@@ -389,7 +391,6 @@
             </div>
         </div>
 
-        <!-- ==================== 第二頁：詩篇正文 ==================== -->
         <div class="page" id="page2">
             <div class="page-face">
                 <div class="inner-border">
@@ -404,7 +405,10 @@
                         <p style="margin-top: 15px;">我此生的慷慨，從不給予無緣的過客，</p>
                         <p>卻也吝嗇給予僅止於血緣與身分的熟稔。</p>
                     </div>
-                    <button class="btn-next" onclick="nextPage(2)" ontouchstart="nextPage(2)">望向深處 ➔</button>
+                    <div class="nav-buttons">
+                        <button class="btn-prev" onclick="prevPage(2)" ontouchstart="prevPage(2)">❮ 返回封面</button>
+                        <button class="btn-next" onclick="nextPage(2)" ontouchstart="nextPage(2)">望向深處 ➔</button>
+                    </div>
                 </div>
             </div>
             <div class="page-face page-back">
@@ -418,49 +422,44 @@
             </div>
         </div>
 
-        <!-- ==================== 第三頁：終極四扇門抉擇 ==================== -->
         <div class="page" id="page3">
             <div class="page-face">
                 <div class="inner-border">
                     <div class="crest">✦ ⚜ ✦</div>
                     <div class="doors-title" id="doorsTitle">請卸下心防，選擇一扇宿命之門</div>
                     
-                    <!-- 四扇門：日、月、親、卿 -->
                     <div class="doors-grid" id="doorsGrid">
                         <div class="door-wrapper">
-                            <!-- 門 1：日 -->
                             <div class="door" onclick="chooseDoor(1, this)" ontouchstart="chooseDoor(1, this)">
                                 <span>「日」之門</span>
                             </div>
                         </div>
                         <div class="door-wrapper">
-                            <!-- 門 2：月 -->
                             <div class="door" onclick="chooseDoor(2, this)" ontouchstart="chooseDoor(2, this)">
                                 <span>「月」之門</span>
                             </div>
                         </div>
                         <div class="door-wrapper">
-                            <!-- 門 3：親 -->
                             <div class="door" onclick="chooseDoor(3, this)" ontouchstart="chooseDoor(3, this)">
                                 <span>「親」之門</span>
                             </div>
                         </div>
                         <div class="door-wrapper">
-                            <!-- 門 4：卿 -->
                             <div class="door" onclick="chooseDoor(4, this)" ontouchstart="chooseDoor(4, this)">
                                 <span>「卿」之門</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="crest" style="font-size: 11px;">※ 一經決斷，即是宿命的交點</div>
+                    <div class="nav-buttons">
+                        <button class="btn-prev" onclick="prevPage(3)" ontouchstart="prevPage(3)">❮ 返回手札</button>
+                    </div>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- ==================== 鎖定解鎖彈窗 ==================== -->
     <div class="result-box" id="lockBox">
         <h3 style="color: #ff4d4d;">🔓 命運鎖定：安全提問</h3>
         <p style="margin-top: 10px; font-size: 14px;">這扇門對你緊閉。若想重新獲得抉擇之權，請回答主人的專屬私密問題：</p>
@@ -470,19 +469,16 @@
         <p id="errorHint" style="color: #ff4d4d; font-size: 12px; margin-top: 10px; display: none;">誓言不對喔，再仔細想想！</p>
     </div>
 
-    <!-- ==================== 唯一正確的抉擇彈窗結果 ==================== -->
     <div class="result-box" id="resultBox">
-        <h3>【 吾愛唯卿 】</h3>
+        <h3>【 卿房大結局：吾愛唯卿 】</h3>
         <p id="resultText">
             吾愛有三，日、月、卿。而卿，是朝朝暮暮。<br><br>
-            你果真沒有遲疑，答出了專屬於我們的暗號！<br><br>
-            現在，請合上石板，別再字句間兜轉，抬頭望向我的眼睛——最深沉的愛與最滾燙的生日大禮，早已在等著我最愛的小花。
+            你果真沒有遲疑，走向了專屬於我們的宿命終點！現在，請合上石板，別再字句間兜轉，抬頭望向 Mandy 的眼睛——最深沉的愛與最滾燙的生日大禮，早已在等著你。
         </p>
     </div>
 
-    <!-- JavaScript 動態邏輯 -->
     <script>
-        // 翻頁控制：修正手機瀏覽器 pointer-events 行為
+        // 翻開下一頁
         function nextPage(pageNum) {
             const currentPage = document.getElementById(`page${pageNum}`);
             const nextPage = document.getElementById(`page${pageNum + 1}`);
@@ -492,10 +488,25 @@
                 currentPage.classList.remove('active');
             }
             if (nextPage) {
-                // 延遲啟用下一頁的點擊權限，避免 3D 動畫過程發生點擊穿透
                 setTimeout(() => {
                     nextPage.classList.add('active');
-                }, 300);
+                }, 300); // 確保 3D 轉動過半後才啟用下一頁的觸控
+            }
+        }
+
+        // 返回上一頁
+        function prevPage(pageNum) {
+            const currentPage = document.getElementById(`page${pageNum}`);
+            const prevPage = document.getElementById(`page${pageNum - 1}`);
+            
+            if (currentPage) {
+                currentPage.classList.remove('active');
+            }
+            if (prevPage) {
+                prevPage.classList.remove('flipped'); // 移除翻轉類，翻轉回來
+                setTimeout(() => {
+                    prevPage.classList.add('active');
+                }, 100);
             }
         }
 
@@ -503,23 +514,19 @@
         let isLocked = false;
 
         function chooseDoor(doorNumber, doorElement) {
-            // 防止點選正確後的重複點選，以及被鎖定時的點選
             if (hasChosenCorrectly || isLocked) return; 
 
             const title = document.getElementById('doorsTitle');
 
-            // === 情況 A：選錯門 (日、月、親) ➔ 鎖死大門，必須回答問題解鎖 ===
+            // === 情況 A：選錯門 ➔ 鎖死大門，必須回答問題解鎖 ===
             if (doorNumber !== 4) {
-                // 門抖動並發出紅光
                 doorElement.classList.add('shake');
                 setTimeout(() => {
                     doorElement.classList.remove('shake');
                 }, 500);
 
-                // 鎖定點擊狀態
                 isLocked = true;
                 
-                // 跳出解鎖彈窗
                 setTimeout(() => {
                     document.getElementById('lockBox').classList.add('show');
                 }, 600);
@@ -530,17 +537,12 @@
             // === 情況 B：選對門 (卿之門) ===
             hasChosenCorrectly = true;
 
-            // 1. 鎖定整個大門區域，其他門變灰
             const grid = document.getElementById('doorsGrid');
             grid.classList.add('locked');
 
-            // 2. 變更標題文字
             title.innerHTML = "<span style='color: #ffd700; font-size: 16px; font-weight: bold;'>✦ 門開了。吾愛唯卿 ✦</span>";
-
-            // 3. 讓卿之門 3D 旋轉開啟
             doorElement.classList.add('open');
 
-            // 4. 彈出最深情、完美的終極大結局視窗
             const resultBox = document.getElementById('resultBox');
             setTimeout(() => {
                 resultBox.classList.add('show');
@@ -550,15 +552,13 @@
         // === 密碼驗證邏輯 ===
         function verifyAnswer() {
             const inputVal = document.getElementById('answerInput').value.trim();
-            const correctAnswers = ["誰是世界上最可愛的女友", "誰是世界上最可愛的女友？"]; // 自動相容問號
+            const correctAnswers = ["誰是世界上最可愛的女友", "誰是世界上最可愛的女友？"];
             
             if (correctAnswers.includes(inputVal)) {
-                // 答對了：關閉解鎖盒、解除鎖定，清除輸入框，並將標題重置
                 document.getElementById('lockBox').classList.remove('show');
                 document.getElementById('errorHint').style.display = "none";
                 document.getElementById('answerInput').value = "";
                 
-                // 重置鎖定狀態，允許再次嘗試
                 setTimeout(() => {
                     isLocked = false;
                 }, 100);
@@ -571,10 +571,14 @@
                     }
                 }, 2500);
             } else {
-                // 答錯了：顯示紅色提示
                 document.getElementById('errorHint').style.display = "block";
             }
         }
+
+        // 初始化：預設載入時，第一頁為 active，其餘完全隱藏
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('page1').classList.add('active');
+        });
     </script>
 </body>
 </html>
