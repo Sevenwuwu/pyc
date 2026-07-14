@@ -23,8 +23,6 @@
             min-height: 100vh;
             overflow: hidden;
             position: relative;
-            perspective: 1500px;
-            -webkit-perspective: 1500px;
         }
 
         /* 奢華流沙金色背景動畫 */
@@ -42,8 +40,8 @@
             z-index: -2;
         }
 
-        /* 3D 書本主容器 */
-        .book-container {
+        /* 手機主要卡片容器 */
+        .card-container {
             width: 90vw;
             height: 80vh;
             max-width: 380px;
@@ -51,31 +49,11 @@
             position: relative;
         }
 
-        /* 單個書頁樣式 */
+        /* 單個頁面樣式：設定 1.0 秒的優雅翻開過渡動態 */
         .page {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            transform-style: preserve-3d;
-            -webkit-transform-style: preserve-3d;
-            transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
-            -webkit-transition: -webkit-transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
-            transform-origin: left center;
-            -webkit-transform-origin: left center;
-            visibility: hidden;
-            z-index: 1;
-        }
-
-        /* 書頁的正反面 */
-        .page-face {
             position: absolute;
             width: 100%;
             height: 100%;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
             background: linear-gradient(180deg, rgba(22, 22, 22, 0.98) 0%, rgba(12, 12, 12, 0.99) 100%);
             border: 1px solid rgba(212, 175, 55, 0.25);
             border-radius: 12px;
@@ -85,14 +63,18 @@
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
+            pointer-events: none;
+            
+            /* 將時間改為 1.0s，並微調貝茲曲線(讓開頭稍慢、中間滑順、結尾輕柔緩停) */
+            transition: transform 1.0s cubic-bezier(0.3, 1, 0.4, 1), opacity 0.9s ease, visibility 1.0s;
+            -webkit-transition: -webkit-transform 2.0s cubic-bezier(0.3, 1, 0.4, 1), opacity 0.9s ease, visibility 1.0s;
+            
+            visibility: hidden;
+            opacity: 0;
+            z-index: 1;
         }
 
-        .page-back {
-            transform: rotateY(180deg);
-            -webkit-transform: rotateY(180deg);
-        }
-
-        /* 書頁裝飾邊框 */
+        /* 內層裝飾邊框 */
         .inner-border {
             border: 1px dashed rgba(212, 175, 55, 0.15);
             border-radius: 8px;
@@ -106,19 +88,30 @@
             position: relative;
         }
 
-        /* 翻頁後的狀態 */
-        .page.flipped {
-            transform: rotateY(-180deg);
-            -webkit-transform: rotateY(-180deg);
-            z-index: 0;
-            visibility: visible;
+        /* 狀態一：尚未閱讀的頁面（預設縮在右側待命） */
+        .page.enter-right {
+            transform: translateX(120%) rotate(8deg);
+            -webkit-transform: translateX(120%) rotate(8deg);
+            opacity: 0;
+            visibility: hidden;
         }
 
-        /* 只有處於活動狀態（最頂層）的頁面 */
+        /* 狀態二：當前正在閱讀的頁面（完美居中呈現） */
         .page.active {
-            pointer-events: auto !important;
-            visibility: visible !important;
+            transform: translateX(0) rotate(0deg) !important;
+            -webkit-transform: translateX(0) rotate(0deg) !important;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
             z-index: 5;
+        }
+
+        /* 狀態三：已經讀完、被滑開到左側的頁面 */
+        .page.exit-left {
+            transform: translateX(-120%) rotate(-8deg);
+            -webkit-transform: translateX(-120%) rotate(-8deg);
+            opacity: 0;
+            visibility: hidden;
         }
 
         /* 書頂與書底徽章 */
@@ -152,24 +145,24 @@
         /* --- 第二頁：手札詩篇樣式 --- */
         .poem-content {
             text-align: center;
-            font-size: 13px;
-            line-height: 2.1;
-            letter-spacing: 2px;
+            font-size: 12.5px;
+            line-height: 2.0;
+            letter-spacing: 2.2px;
             margin: auto 0;
             width: 100%;
         }
 
         .poem-content p {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .highlight-line {
             color: #e5c158;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13.5px;
         }
 
-        /* --- 第三頁：四扇門選擇大結局樣式 --- */
+        /* --- 第三頁：四扇門選擇樣式 --- */
         .doors-title {
             font-size: 15px;
             color: #e5c158;
@@ -293,6 +286,20 @@
             pointer-events: auto !important;
         }
 
+        .result-box h3 {
+            color: #ffd700;
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .result-box p {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #f2e3c6;
+            letter-spacing: 1px;
+        }
+
         /* 解鎖密碼彈窗樣式 */
         .lock-input {
             width: 100%;
@@ -365,110 +372,82 @@
 </head>
 <body>
 
-    <div class="book-container">
+    <div class="card-container">
         
-        <!-- ==================== 第一頁：封面 ==================== -->
         <div class="page active" id="page1">
-            <div class="page-face">
-                <div class="inner-border">
-                    <div class="crest">✦ ⚜ ✦</div>
-                    <div class="cover-title">
-                        <h1>《宴會主人的手札》</h1>
-                        <p>DIES NATALIS FLORIS</p>
-                    </div>
-                    <div class="nav-buttons">
-                        <button class="btn-next" onclick="nextPage(1)" ontouchstart="nextPage(1)">輕觸翻開手札 ➔</button>
-                    </div>
+            <div class="inner-border">
+                <div class="crest">✦ ⚜ ✦</div>
+                <div class="cover-title">
+                    <h1>《宴會主人的手札》</h1>
+                    <p>DIES NATALIS FLORIS</p>
                 </div>
-            </div>
-            <div class="page-face page-back">
-                <div class="inner-border">
-                    <div class="crest">✦</div>
-                    <div style="font-size: 12px; color: rgba(212, 175, 55, 0.4); letter-spacing: 2px;">
-                        深藏於光影交織處的呢喃...
-                    </div>
-                    <div class="crest">✦</div>
+                <div class="nav-buttons">
+                    <button class="btn-next" onclick="nextPage(1)" ontouchstart="nextPage(1)">輕觸翻開手札 ➔</button>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== 第二頁：詩篇正文 ==================== -->
-        <div class="page" id="page2">
-            <div class="page-face">
-                <div class="inner-border">
-                    <div class="crest">✦ ⚜ ✦</div>
-                    <div class="poem-content">
-                        <p>我將寶物，收藏於門後</p>
-                        <p>欲尋寶物，需聽懂我的囈語：</p>
-                        <p class="highlight-line">吾愛有三，日、月、卿。</p>
-                        <p>日為朝，月為暮，卿為朝朝暮暮。</p>
-                        <p style="margin-top: 15px;">晨曦太過倉促，盛不下對你滿溢的愛慕；</p>
-                        <p>夜幕太過清冷，容不下對你滾燙的貪圖。</p>
-                        <p style="margin-top: 15px;">我此生的慷慨，從不給予無緣的過客，</p>
-                        <p>卻也吝嗇給予僅止於血緣與身分的熟稔。</p>
-                        <p style="margin-top: 15px;">如果你了解我，請卸下心防，</p>
-                        <p>若你執意拿走禮物，別在字句間兜轉，望進我的眼睛裡，你就會看到答案。</p>
-                    </div>
-                    <div class="nav-buttons">
-                        <button class="btn-prev" onclick="prevPage(2)" ontouchstart="prevPage(2)">❮ 返回封面</button>
-                        <button class="btn-next" onclick="nextPage(2)" ontouchstart="nextPage(2)">望向深處 ➔</button>
-                    </div>
+        <div class="page enter-right" id="page2">
+            <div class="inner-border">
+                <div class="crest">✦ ⚜ ✦</div>
+                <div class="poem-content">
+                    <p>我將寶物，收藏於門後</p>
+                    <p>欲尋寶物，需聽懂我的囈語：</p>
+                    <p class="highlight-line">吾愛有三，日、月、卿。</p>
+                    <p>日為朝，月為暮，卿為朝朝暮暮。</p>
+                    <p style="margin-top: 10px;">晨曦太過倉促，盛不下對你滿溢的愛慕；</p>
+                    <p>夜幕太過清冷，容不下對你滾燙的貪圖。</p>
+                    <p style="margin-top: 10px;">我此生的慷慨，從不給予無緣的過客，</p>
+                    <p>卻也吝嗇給予僅止於血緣與身分的熟稔。</p>
+                    <p style="margin-top: 10px; color: #ffd700;">如果你了解我，請卸下心防，</p>
+                    <p>若你執意拿走禮物，別在字句間兜轉，</p>
+                    <p class="highlight-line">望進我的眼睛裡，你就會看到答案。</p>
                 </div>
-            </div>
-            <div class="page-face page-back">
-                <div class="inner-border">
-                    <div class="crest">✦</div>
-                    <div style="font-size: 12px; color: rgba(212, 175, 55, 0.4); letter-spacing: 2px; text-align: center; line-height: 2;">
-                        別在字句間兜轉，<br>望進我的眼睛裡，你就會看到答案。
-                    </div>
-                    <div class="crest">✦</div>
+                <div class="nav-buttons">
+                    <button class="btn-prev" onclick="prevPage(2)" ontouchstart="prevPage(2)">❮ 返回封面</button>
+                    <button class="btn-next" onclick="nextPage(2)" ontouchstart="nextPage(2)">尋找答案 ➔</button>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== 第三頁：終極四扇門抉擇 ==================== -->
-        <div class="page" id="page3">
-            <div class="page-face">
-                <div class="inner-border">
-                    <div class="crest">✦ ⚜ ✦</div>
-                    <div class="doors-title" id="doorsTitle">請卸下心防，選擇一扇宿命之門</div>
-                    
-                    <!-- 四扇門：日、月、親、卿 -->
-                    <div class="doors-grid" id="doorsGrid">
-                        <div class="door-wrapper">
-                            <div class="door" onclick="chooseDoor(1, this)" ontouchstart="chooseDoor(1, this)">
-                                <span>「日」之門</span>
-                            </div>
-                        </div>
-                        <div class="door-wrapper">
-                            <div class="door" onclick="chooseDoor(2, this)" ontouchstart="chooseDoor(2, this)">
-                                <span>「月」之門</span>
-                            </div>
-                        </div>
-                        <div class="door-wrapper">
-                            <div class="door" onclick="chooseDoor(3, this)" ontouchstart="chooseDoor(3, this)">
-                                <span>「親」之門</span>
-                            </div>
-                        </div>
-                        <div class="door-wrapper">
-                            <div class="door" onclick="chooseDoor(4, this)" ontouchstart="chooseDoor(4, this)">
-                                <span>「卿」之門</span>
-                            </div>
+        <div class="page enter-right" id="page3">
+            <div class="inner-border">
+                <div class="crest">✦ ⚜ ✦</div>
+                <div class="doors-title" id="doorsTitle">請卸下心防，選擇一扇宿命之門</div>
+                
+                <div class="doors-grid" id="doorsGrid">
+                    <div class="door-wrapper">
+                        <div class="door" onclick="chooseDoor(1, this)" ontouchstart="chooseDoor(1, this)">
+                            <span>「日」之門</span>
                         </div>
                     </div>
+                    <div class="door-wrapper">
+                        <div class="door" onclick="chooseDoor(2, this)" ontouchstart="chooseDoor(2, this)">
+                            <span>「月」之門</span>
+                        </div>
+                    </div>
+                    <div class="door-wrapper">
+                        <div class="door" onclick="chooseDoor(3, this)" ontouchstart="chooseDoor(3, this)">
+                            <span>「親」之門</span>
+                        </div>
+                    </div>
+                    <div class="door-wrapper">
+                        <div class="door" onclick="chooseDoor(4, this)" ontouchstart="chooseDoor(4, this)">
+                            <span>「卿」之門</span>
+                        </div>
+                    </div>
+                </div>
 
-                    <div class="nav-buttons">
-                        <button class="btn-prev" onclick="prevPage(3)" ontouchstart="prevPage(3)">❮ 返回手札</button>
-                    </div>
+                <div class="nav-buttons">
+                    <button class="btn-prev" onclick="prevPage(3)" ontouchstart="prevPage(3)">❮ 返回手札</button>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- ==================== 鎖定解鎖彈窗 ==================== -->
     <div class="result-box" id="lockBox">
-        <h3 style="color: #ff4d4d;">🔓 命運鎖定：安全提問</h3>
+        <h3 style="color: #ff4d4d;">🔓 命命鎖定：安全提問</h3>
         <p style="margin-top: 10px; font-size: 14px;">這扇門對你緊閉。若想重新獲得抉擇之權，請回答主人的專屬私密問題：</p>
         <p style="color: #ffd700; margin-top: 15px; font-weight: bold; font-size: 15px;">「我捧著妳臉的時候會說什麼？」 (11個字)</p>
         <input type="text" class="lock-input" id="answerInput" placeholder="請在此輸入正確誓言...">
@@ -476,7 +455,6 @@
         <p id="errorHint" style="color: #ff4d4d; font-size: 12px; margin-top: 10px; display: none;">誓言不對喔，再仔細想想！</p>
     </div>
 
-    <!-- ==================== 唯一正確的抉擇彈窗結果 (已更新文案) ==================== -->
     <div class="result-box" id="resultBox">
         <h3>【 卿房大結局：吾愛唯卿 】</h3>
         <p id="resultText">
@@ -486,37 +464,32 @@
         </p>
     </div>
 
-    <!-- JavaScript 動態邏輯 -->
-    <script>
-        // 翻開下一頁
+    <script {nonce}>
+        // 向上推進（下一頁）
         function nextPage(pageNum) {
-            const currentPage = document.getElementById(`page${pageNum}`);
-            const nextPage = document.getElementById(`page${pageNum + 1}`);
-            
-            if (currentPage) {
-                currentPage.classList.add('flipped');
-                currentPage.classList.remove('active');
-            }
-            if (nextPage) {
-                setTimeout(() => {
-                    nextPage.classList.add('active');
-                }, 300);
+            const current = document.getElementById(`page${pageNum}`);
+            const next = document.getElementById(`page${pageNum + 1}`);
+
+            if (current && next) {
+                current.classList.remove('active');
+                current.classList.add('exit-left');
+
+                next.classList.remove('enter-right');
+                next.classList.add('active');
             }
         }
 
-        // 返回上一頁
+        // 向下抽回（返回頁）
         function prevPage(pageNum) {
-            const currentPage = document.getElementById(`page${pageNum}`);
-            const prevPage = document.getElementById(`page${pageNum - 1}`);
-            
-            if (currentPage) {
-                currentPage.classList.remove('active');
-            }
-            if (prevPage) {
-                prevPage.classList.remove('flipped');
-                setTimeout(() => {
-                    prevPage.classList.add('active');
-                }, 100);
+            const current = document.getElementById(`page${pageNum}`);
+            const prev = document.getElementById(`page${pageNum - 1}`);
+
+            if (current && prev) {
+                current.classList.remove('active');
+                current.classList.add('enter-right');
+
+                prev.classList.remove('exit-left');
+                prev.classList.add('active');
             }
         }
 
@@ -584,11 +557,6 @@
                 document.getElementById('errorHint').style.display = "block";
             }
         }
-
-        // 初始化
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById('page1').classList.add('active');
-        });
     </script>
 </body>
 </html>
