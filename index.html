@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DIES NATALIS FLORIS — 宴會主人的手札</title>
+    <style>
+        /* 基礎樣式重設 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0d0d0d;
+            color: #f2e3c6;
+            font-family: 'PingFang TC', 'Noto Serif TC', 'Microsoft JhengHei', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* 奢華流沙金色背景動畫 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(184, 134, 11, 0.08) 0%, transparent 50%),
+                linear-gradient(135deg, #050505 0%, #121212 100%);
+            z-index: -2;
+        }
+
+        /* 飄散金色微光特效 */
+        .sparkles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: radial-gradient(circle, rgba(212, 175, 55, 0.15) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: floatSparkles 15s linear infinite;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        @keyframes floatSparkles {
+            0% { background-position: 0px 0px; }
+            100% { background-position: 40px 80px; }
+        }
+
+        /* 信件外框容器 */
+        .letter-container {
+            width: 100%;
+            max-width: 390px; /* 完美契合主流手機寬度 */
+            background: linear-gradient(180deg, rgba(20, 20, 20, 0.9) 0%, rgba(10, 10, 10, 0.95) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 16px;
+            padding: 35px 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(212, 175, 55, 0.05);
+            position: relative;
+            animation: fadeIn 1.8s ease-out;
+        }
+
+        /* 內層裝飾細金線 */
+        .letter-inner {
+            border: 1px dashed rgba(212, 175, 55, 0.15);
+            border-radius: 12px;
+            padding: 25px 15px;
+            text-align: center;
+        }
+
+        /* 頂部徽章裝飾 */
+        .royal-crest {
+            font-size: 24px;
+            color: #d4af37;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            animation: pulse 3s infinite ease-in-out;
+            filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3));
+        }
+
+        /* 標題樣式 */
+        h1 {
+            font-size: 20px;
+            color: #e5c158;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 15px;
+            display: inline-block;
+        }
+
+        /* 朦朧詩正文排版 */
+        .poem {
+            font-size: 15px;
+            line-height: 2.2;
+            letter-spacing: 2.5px;
+            color: #f2e3c6;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+
+        .poem p {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* 關鍵解密提示強調 */
+        .highlight {
+            color: #fcebb6;
+            font-weight: 600;
+            border-top: 1px solid rgba(212, 175, 55, 0.15);
+            padding-top: 25px;
+            margin-top: 25px;
+            letter-spacing: 3px;
+            line-height: 2.4;
+            text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+        }
+
+        /* 動畫效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        /* 手機觸覺反饋引導微調 */
+        @media (max-width: 360px) {
+            .letter-container {
+                padding: 25px 15px;
+            }
+            .poem {
+                font-size: 14px;
+                line-height: 2.0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 背景微光 -->
+    <div class="sparkles"></div>
+
+    <!-- 信件容器 -->
+    <div class="letter-container">
+        <div class="letter-inner">
+            
+            <!-- 皇家復古圖騰 -->
+            <div class="royal-crest">✦ ⚜ ✦</div>
+            
+            <!-- 標題 -->
+            <h1>《宴會主人的手札》</h1>
+            
+            <!-- 詩句正文 -->
+            <div class="poem">
+                <p>我將寶物，收藏於門後</p>
+                <p>欲尋寶物，需聽懂我的囈語：</p>
+                <p style="color: #e5c158; font-weight: bold; font-size: 16px;">吾愛有三，日、月、卿。</p>
+                <p>日為朝，月為暮，卿為朝朝暮暮。</p>
+                
+                <p style="margin-top: 25px;">晨曦太過倉促，<br>盛不下對你滿溢的愛慕；</p>
+                <p>夜幕太過清冷，<br>容不下對你滾燙的貪圖。</p>
+                
+                <p style="margin-top: 25px;">我此生的慷慨，從不給予無緣的過客，</p>
+                <p>卻也吝嗇給予僅止於血緣與身分的熟稔。</p>
+                
+                <!-- 結尾反轉提示 -->
+                <div class="highlight">
+                    如果你了解我，請卸下心防。<br>
+                    若你執意拿走禮物，別在字句間兜轉，<br>
+                    <span style="color: #ffd700; text-decoration: underline; text-underline-offset: 6px;">望進我的眼睛裡，你就會看到答案。</span>
+                </div>
+            </div>
+            
+            <div class="royal-crest" style="margin-top: 20px; font-size: 14px;">— 𝓒𝓱𝓵𝓸𝓮'𝓼 𝓓𝓲𝓮𝓼 𝓝𝓪𝓽𝓪𝓵𝓲𝓼 —</div>
+        </div>
+    </div>
+
+</body>
+</html>
